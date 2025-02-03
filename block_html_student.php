@@ -22,41 +22,76 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/**
+ * HTML Student block
+ */
 class block_html_student extends block_base {
 
-    function init() {
+    /**
+     * Init
+     * @return void
+     */
+    public function init() {
         $this->title = get_string('pluginname', 'block_html_student');
     }
 
-    function has_config() {
+    /**
+     * has Config
+     *
+     * @return boolean
+     */
+    public function has_config() {
         return true;
     }
 
-    function applicable_formats() {
-        return array('all' => true);
+    /**
+     * Applicable formats
+     *
+     * @return array
+     */
+    public function applicable_formats(): array {
+        return ['all' => true];
     }
 
-    function specialization() {
-        $this->title = isset($this->config->title) ? format_string($this->config->title) : format_string(get_string('newhtmlstudentblock', 'block_html_student'));
+    /**
+     * Specialization
+     *
+     * @return void
+     */
+    public function specialization() {
+        $this->title = isset($this->config->title)
+            ? format_string($this->config->title)
+            : format_string(get_string('newhtmlstudentblock', 'block_html_student'));
     }
 
-    function instance_allow_multiple() {
+    /**
+     * Allow multiple instances
+     *
+     * @return bool
+     */
+    public function instance_allow_multiple(): bool {
         return true;
     }
 
-    function get_content() {
+
+    /**
+     * Get content object
+     *
+     * @return stdClass
+     */
+    public function get_content(): stdClass {
         global $CFG, $USER;
 
         require_once($CFG->libdir . '/filelib.php');
 
-        if ($this->content !== NULL) {
+        if ($this->content !== null) {
             return $this->content;
         }
 
         $filteropt = new stdClass;
         $filteropt->overflowdiv = true;
         if ($this->content_is_trusted()) {
-            // fancy html allowed only on course, category and system blocks.
+            // Fancy html allowed only on course, category and system blocks.
             $filteropt->noclean = true;
         }
 
@@ -64,12 +99,18 @@ class block_html_student extends block_base {
         $this->content->footer = '';
         $department = $USER->department ?? '';
         if (isset($this->config->text) && ($department == 'student' || is_siteadmin())) {
-            // rewrite url
-            $this->config->text = file_rewrite_pluginfile_urls($this->config->text, 'pluginfile.php', $this->context->id, 'block_html_student', 'content', NULL);
+            // Rewrite url.
+            $this->config->text = file_rewrite_pluginfile_urls(
+                $this->config->text,
+                'pluginfile.php',
+                $this->context->id,
+                'block_html_student',
+                'content',
+                null);
             // Default to FORMAT_HTML which is what will have been used before the
             // editor was properly implemented for the block.
             $format = FORMAT_HTML;
-            // Check to see if the format has been properly set on the config
+            // Check to see if the format has been properly set on the config.
             if (isset($this->config->format)) {
                 $format = $this->config->format;
             }
@@ -78,7 +119,7 @@ class block_html_student extends block_base {
             $this->content->text = '';
         }
 
-        unset($filteropt); // memory footprint
+        unset($filteropt);
 
         return $this->content;
     }
@@ -86,20 +127,34 @@ class block_html_student extends block_base {
 
     /**
      * Serialize and store config data
+     *
+     * @param stdClass $data
+     * @param bool $nolongerused
      */
-    function instance_config_save($data, $nolongerused = false) {
+    public function instance_config_save($data, $nolongerused = false) {
         global $DB;
 
         $config = clone($data);
-        // Move embedded files into a proper filearea and adjust HTML links to match
-        $config->text = file_save_draft_area_files($data->text['itemid'], $this->context->id, 'block_html_student', 'content', 0, array('subdirs'=>true), $data->text['text']);
+        // Move embedded files into a proper filearea and adjust HTML links to match.
+        $config->text = file_save_draft_area_files(
+            $data->text['itemid'],
+            $this->context->id,
+            'block_html_student',
+            'content',
+            0,
+            ['subdirs' => true],
+            $data->text['text']);
         $config->format = $data->text['format'];
 
         parent::instance_config_save($config, $nolongerused);
     }
 
-    function instance_delete() {
-        global $DB;
+    /**
+     * Delete instance
+     *
+     * @return boolean
+     */
+    public function instance_delete(): bool {
         $fs = get_file_storage();
         $fs->delete_area_files($this->context->id, 'block_html_student');
         return true;
@@ -116,26 +171,43 @@ class block_html_student extends block_base {
         // This extra check if file area is empty adds one query if it is not empty but saves several if it is.
         if (!$fs->is_area_empty($fromcontext->id, 'block_html_student', 'content', 0, false)) {
             $draftitemid = 0;
-            file_prepare_draft_area($draftitemid, $fromcontext->id, 'block_html_student', 'content', 0, array('subdirs' => true));
-            file_save_draft_area_files($draftitemid, $this->context->id, 'block_html_student', 'content', 0, array('subdirs' => true));
+            file_prepare_draft_area(
+                $draftitemid,
+                $fromcontext->id,
+                'block_html_student',
+                'content',
+                0,
+                ['subdirs' => true]);
+            file_save_draft_area_files(
+                $draftitemid,
+                $this->context->id,
+                'block_html_student',
+                'content',
+                0,
+                ['subdirs' => true]);
         }
         return true;
     }
 
-    function content_is_trusted() {
+    /**
+     * Content is trusted
+     *
+     * @return boolean
+     */
+    public function content_is_trusted(): bool {
         global $SCRIPT;
 
         if (!$context = context::instance_by_id($this->instance->parentcontextid, IGNORE_MISSING)) {
             return false;
         }
-        //find out if this block is on the profile page
+        // Find out if this block is on the profile page.
         if ($context->contextlevel == CONTEXT_USER) {
             if ($SCRIPT === '/my/index.php') {
-                // this is exception - page is completely private, nobody else may see content there
-                // that is why we allow JS here
+                // This is exception - page is completely private, nobody else may see content there
+                // that is why we allow JS here.
                 return true;
             } else {
-                // no JS on public personal pages, it would be a big security issue
+                // No JS on public personal pages, it would be a big security issue.
                 return false;
             }
         }
@@ -153,12 +225,12 @@ class block_html_student extends block_base {
         return (!empty($this->config->title) && parent::instance_can_be_docked());
     }
 
-    /*
+    /**
      * Add custom html attributes to aid with theming and styling
      *
      * @return array
      */
-    function html_attributes() {
+    public function html_attributes() {
         global $CFG;
 
         $attributes = parent::html_attributes();

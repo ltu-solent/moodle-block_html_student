@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * HTML student block
+ *
  * @package    block_html_student
  * @subpackage backup-moodle2
  * @copyright  2003 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
@@ -29,22 +31,48 @@
  */
 class backup_html_student_block_task extends backup_block_task {
 
+    /**
+     * Settings
+     *
+     * @return void
+     */
     protected function define_my_settings() {
     }
 
+    /**
+     * Steps
+     *
+     * @return void
+     */
     protected function define_my_steps() {
     }
 
+    /**
+     * File areads
+     *
+     * @return array
+     */
     public function get_fileareas() {
-        return array('content');
+        return ['content'];
     }
 
+    /**
+     * Config data
+     *
+     * @return array
+     */
     public function get_configdata_encoded_attributes() {
-        return array('text'); // We need to encode some attrs in configdata
+        return ['text']; // We need to encode some attrs in configdata.
     }
 
-    static public function encode_content_links($content) {
-        return $content; // No special encoding of links
+    /**
+     * Encode links
+     *
+     * @param string $content
+     * @return string
+     */
+    public static function encode_content_links($content) {
+        return $content; // No special encoding of links.
     }
 }
 

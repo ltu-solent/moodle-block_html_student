@@ -25,8 +25,10 @@
 defined('MOODLE_INTERNAL') || die;
 
 if ($ADMIN->fulltree) {
-    $settings->add(new admin_setting_configcheckbox('block_html_student_allowcssclasses', get_string('allowadditionalcssclasses', 'block_html_student'),
-                       get_string('configallowadditionalcssclasses', 'block_html_student'), 0));
+    $settings->add(new admin_setting_configcheckbox(
+        'block_html_student_allowcssclasses',
+        get_string('allowadditionalcssclasses', 'block_html_student'),
+        get_string('configallowadditionalcssclasses', 'block_html_student'), 0));
 }
 
 

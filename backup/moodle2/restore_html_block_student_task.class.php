@@ -15,11 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * HTML student restore class
+ *
  * @package   block_html_student
  * @subpackage backup-moodle2
  * @copyright 2003 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Specialised restore task for the html block
@@ -29,31 +32,61 @@
  */
 class restore_html_student_block_task extends restore_block_task {
 
+    /**
+     * Settings
+     *
+     * @return void
+     */
     protected function define_my_settings() {
     }
 
+    /**
+     * Steps
+     *
+     * @return void
+     */
     protected function define_my_steps() {
     }
 
+    /**
+     * File areas
+     *
+     * @return array
+     */
     public function get_fileareas() {
-        return array('content');
+        return ['content'];
     }
 
+    /**
+     * Encoded attributes
+     *
+     * @return array
+     */
     public function get_configdata_encoded_attributes() {
-        return array('text'); // We need to encode some attrs in configdata
+        return ['text']; // We need to encode some attrs in configdata.
     }
 
-    static public function define_decode_contents() {
+    /**
+     * Decode contents
+     *
+     * @return array
+     */
+    public static function define_decode_contents() {
 
-        $contents = array();
+        $contents = [];
 
         $contents[] = new restore_html_student_block_decode_content('block_instances', 'configdata', 'block_instance');
 
         return $contents;
     }
 
-    static public function define_decode_rules() {
-        return array();
+    /**
+     * Decode rules
+     *
+     * @return array
+     */
+    public static function define_decode_rules() {
+        return [];
     }
 }
 
@@ -64,12 +97,22 @@ class restore_html_student_block_task extends restore_block_task {
  */
 class restore_html_student_block_decode_content extends restore_decode_content {
 
-    protected $configdata; // Temp storage for unserialized configdata
+    /**
+     * Temp storage for unserialized configdata
+     *
+     * @var object
+     */
+    protected $configdata;
 
+    /**
+     * Iterator
+     *
+     * @return moodle_recordset
+     */
     protected function get_iterator() {
         global $DB;
 
-        // Build the SQL dynamically here
+        // Build the SQL dynamically here.
         $fieldslist = 't.' . implode(', t.', $this->fields);
         $sql = "SELECT t.id, $fieldslist
                   FROM {" . $this->tablename . "} t
@@ -77,15 +120,27 @@ class restore_html_student_block_decode_content extends restore_decode_content {
                  WHERE b.backupid = ?
                    AND b.itemname = ?
                    AND t.blockname = 'html_student'";
-        $params = array($this->restoreid, $this->mapping);
+        $params = [$this->restoreid, $this->mapping];
         return ($DB->get_recordset_sql($sql, $params));
     }
 
+    /**
+     * Preprocess field
+     *
+     * @param string $field
+     * @return string
+     */
     protected function preprocess_field($field) {
         $this->configdata = unserialize_object(base64_decode($field));
         return isset($this->configdata->text) ? $this->configdata->text : '';
     }
 
+    /**
+     * Postprocess field
+     *
+     * @param string $field
+     * @return string
+     */
     protected function postprocess_field($field) {
         $this->configdata->text = $field;
         return base64_encode(serialize($this->configdata));
